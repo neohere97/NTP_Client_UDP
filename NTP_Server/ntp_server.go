@@ -30,29 +30,21 @@ func main() {
 			fmt.Println("Error reading from UDP:", err)
 			continue
 		}
-
+		recvTime := time.Now().UnixNano()
 		buf[0] = 0x1B
 
+		binary.BigEndian.PutUint32(buf[32:], uint32(recvTime/1e9)+2208988800)
+		binary.BigEndian.PutUint32(buf[36:], uint32(recvTime%(recvTime/1e9)*10))
+
 		ntpTime := time.Now().UnixNano()
-		fmt.Printf("\n%v ntpTime fraction \n", ntpTime)
 		binary.BigEndian.PutUint32(buf[40:], uint32(ntpTime/1e9)+2208988800)
 		binary.BigEndian.PutUint32(buf[44:], uint32(ntpTime%(ntpTime/1e9)*10))
 
 		_, err = conn.WriteToUDP(buf, addr)
-		fmt.Printf("\nBufferSent-> %v", buf)
+		// fmt.Printf("\nBufferSent-> %v", buf)
 		if err != nil {
 			fmt.Println("Error writing to UDP:", err)
 			continue
 		}
 	}
-}
-
-func calculateChecksum(buf []byte) uint16 {
-	var sum uint32
-	for i := 0; i < len(buf); i += 2 {
-		sum += uint32(buf[i])<<8 | uint32(buf[i+1])
-	}
-	sum = (sum >> 16) + (sum & 0xffff)
-	sum += sum >> 16
-	return uint16(^sum)
 }

@@ -24,10 +24,10 @@ func main() {
 
 func sendReqPacket(burst int, messagePair int) {
 
-	//Send NTP Packet
-	// ntpServer := "localhost"
-	ntpServer := "time.google.com"
-	conn, err := net.Dial("udp", ntpServer+":123")
+	ntpServer := "localhost"
+	// ntpServer := "time.google.com"
+	// ntpServer := "34.69.18.67"
+	conn, err := net.Dial("udp", ntpServer+":10123")
 	if err != nil {
 		fmt.Println("Error connecting to NTP server:", err)
 		return
@@ -53,7 +53,6 @@ func sendReqPacket(burst int, messagePair int) {
 		return
 	}
 
-	//Receive NTP Packet
 	ntpResp := make([]byte, 48)
 	_, err = conn.Read(ntpResp)
 	t4 := time.Now().UnixNano()
@@ -61,17 +60,13 @@ func sendReqPacket(burst int, messagePair int) {
 		fmt.Printf("Error receiving NTP response-%v", err)
 	}
 
-	// fmt.Printf("Buffer Received -> %v \n", ntpResp)
 	recvSeconds := binary.BigEndian.Uint32(ntpResp[32:36])
 	recvFraction := binary.BigEndian.Uint32(ntpResp[36:40])
 	recvNanoSeconds := (int64(recvSeconds)-2208988800)*1e9 + int64(recvFraction)/10
-	// recvTime := time.Unix(int64(recvSeconds)-2208988800, int64(recvFraction)/10)
 
 	seconds := binary.BigEndian.Uint32(ntpResp[40:44])
 	fraction := binary.BigEndian.Uint32(ntpResp[44:48])
 	nanoSeconds := (int64(seconds)-2208988800)*1e9 + int64(fraction)/10
-	// fmt.Printf("Seconds-> %v, Fraction %v\n", seconds, fraction)
-	// ntpTime := time.Unix(int64(seconds)-2208988800, int64(fraction)/10)
 
 	T1 := orgTime
 	T2 := recvNanoSeconds
@@ -83,5 +78,5 @@ func sendReqPacket(burst int, messagePair int) {
 	// fmt.Printf("\n T3-> %v ", ntpTime)
 	// fmt.Printf("\n T4-> %v", time.Unix(0, t4))
 
-	fmt.Printf("\n BurstNo,%v,MessageNo,%vDelay,%v,Offset,%v", burst, messagePair, float32((float32(T4-T1)-float32(T3-T2))/1e6), 0.5*float32((float32(T2-T1)+float32(T3-T4))/1e6))
+	fmt.Printf("\n BurstNo,%v,MessageNo,%v,Delay,%v,Offset,%v", burst, messagePair, float32((float32(T4-T1)-float32(T3-T2))/1e6), 0.5*float32((float32(T2-T1)+float32(T3-T4))/1e6))
 }
